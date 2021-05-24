@@ -1,0 +1,9 @@
+package com.axondragonscale.pokedex.data.remote.response
+
+import com.google.gson.annotations.SerializedName
+
+data class GenerationVII(
+    val icons: Icons,
+    @SerializedName("ultra-sun-ultra-moon")
+    val ultraSunUltraMoon: UltraSunUltraMoon
+)

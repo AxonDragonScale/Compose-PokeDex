@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.axondragonscale.pokedex.ui.theme.PokeDexTheme
 import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     companion object {
