@@ -17,6 +17,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.axondragonscale.pokedex.ui.theme.PokeDexTheme
+import dagger.hilt.android.AndroidEntryPoint
 
 class MainActivity : ComponentActivity() {
 
@@ -32,7 +33,24 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             PokeDexTheme {
-                
+                val navController = rememberNavController()
+                NavHost(navController, PokemonListScreen) {
+                    composable(PokemonListScreen) { }
+                    composable(
+                        route = "$PokemonDetailScreen/{$DominantColorArg}/{$PokemonNameArg}",
+                        arguments = listOf(
+                            navArgument(DominantColorArg) { type = NavType.IntType },
+                            navArgument(PokemonNameArg) { type = NavType.StringType }
+                        )
+                    ) {
+                        val dominantColor = remember {
+                            val colorInt = it.arguments?.getInt(DominantColorArg)
+                            colorInt?.let { Color(it) } ?: Color.White
+                        }
+
+                        val pokemonName = remember { it.arguments?.getString(PokemonNameArg) }
+                    }
+                }
             }
         }
     }
