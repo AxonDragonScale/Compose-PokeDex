@@ -13,6 +13,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navArgument
 import androidx.navigation.compose.rememberNavController
 import com.axondragonscale.pokedex.ui.Route
+import com.axondragonscale.pokedex.ui.screen.pokemondetail.PokemonDetailScreen
 import com.axondragonscale.pokedex.ui.screen.pokemonlist.PokemonListScreen
 import com.axondragonscale.pokedex.ui.theme.PokeDexTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -32,7 +33,7 @@ class MainActivity : ComponentActivity() {
                     }
 
                     composable(
-                        route = "${Route.PokemonDetailScreen}/{${Route.DominantColorArg}/{${Route.PokemonNameArg}}",
+                        route = "${Route.PokemonDetailScreen}/{${Route.DominantColorArg}}/{${Route.PokemonNameArg}}",
                         arguments = listOf(
                             navArgument(Route.DominantColorArg) { type = NavType.IntType },
                             navArgument(Route.PokemonNameArg) { type = NavType.StringType }
@@ -44,6 +45,12 @@ class MainActivity : ComponentActivity() {
                         }
 
                         val pokemonName = remember { it.arguments?.getString(Route.PokemonNameArg) }
+
+                        PokemonDetailScreen(
+                            dominantColor = dominantColor,
+                            pokemonName = pokemonName ?: "",
+                            navController = navController
+                        )
                     }
 
                 }
