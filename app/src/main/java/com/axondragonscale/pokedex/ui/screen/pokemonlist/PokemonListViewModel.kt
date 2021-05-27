@@ -3,16 +3,22 @@ package com.axondragonscale.pokedex.ui.screen.pokemonlist
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
+import coil.ImageLoader
 import com.axondragonscale.pokedex.data.models.PokedexEntry
 import com.axondragonscale.pokedex.repository.PokemonRepository
 import com.axondragonscale.pokedex.util.Constants.PAGE_SIZE
 import com.axondragonscale.pokedex.util.Resource
+import com.google.accompanist.coil.LocalImageLoader
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -26,13 +32,43 @@ class PokemonListViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var currentPage = 0
+    private var cachedPokemonList = listOf<PokedexEntry>()
+    private var isNewSearch = true
+
     var pokemonList = mutableStateOf<List<PokedexEntry>>(listOf())
     var isLoading = mutableStateOf(false)
     var loadError = mutableStateOf("")
     var lastPageReached = mutableStateOf(false)
+    var isSearching = mutableStateOf(false)
 
     init {
         loadPokemonListPaginated()
+    }
+
+    fun searchPokemon(query: String) {
+        val listToSearch = if (isNewSearch) pokemonList.value
+        else cachedPokemonList
+
+        viewModelScope.launch(Dispatchers.Default) {
+            if (query.isBlank()) {      // When someone erases the text in the search bar
+                pokemonList.value = cachedPokemonList
+                isSearching.value = false
+                isNewSearch = true
+                return@launch
+            }
+
+            val result = listToSearch.filter {
+                it.pokemonName.contains(query.trim(), true)
+                        || it.number.toString() == query.trim()
+            }
+
+            if (isNewSearch) {
+                cachedPokemonList = pokemonList.value
+                isNewSearch = false
+            }
+            pokemonList.value = result
+            isSearching.value = true
+        }
     }
 
     fun loadPokemonListPaginated() {

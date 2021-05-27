@@ -31,19 +31,25 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltNavGraphViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.navigate
+import coil.imageLoader
 import coil.request.ImageRequest
 import com.axondragonscale.pokedex.R
 import com.axondragonscale.pokedex.data.models.PokedexEntry
 import com.axondragonscale.pokedex.ui.Route
 import com.axondragonscale.pokedex.ui.theme.RobotoCondensed
+import com.axondragonscale.pokedex.util.Constants.PAGE_SIZE
 import com.google.accompanist.coil.CoilImage
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
  * Created by Ronak Harkhani on 25/05/21
  */
 @Composable
 fun PokemonListScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: PokemonListViewModel = hiltNavGraphViewModel()
 ) {
     Surface(
         color = MaterialTheme.colors.background,
@@ -59,7 +65,7 @@ fun PokemonListScreen(
             )
 
             Searchbar(modifier = Modifier.fillMaxWidth().padding(16.dp), hint = "Search...") {
-
+                viewModel.searchPokemon(it)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -94,7 +100,7 @@ fun Searchbar(
                 .background(Color.White, CircleShape)
                 .padding(horizontal = 24.dp, vertical = 12.dp)
                 .onFocusChanged {
-                    showHint = !it.isFocused
+                    showHint = !it.isFocused && text.isNotEmpty()
                 }
         )
 
@@ -117,11 +123,13 @@ fun PokedexList(
     val isLoading by remember { viewModel.isLoading }
     val loadError by remember { viewModel.loadError }
     val lastPageReached by remember { viewModel.lastPageReached }
+    val isSearching by remember { viewModel.isSearching }
 
     LazyColumn(contentPadding = PaddingValues(16.dp)) {
         val itemCount = pokemonList.size / 2 + if (pokemonList.size % 2 == 0) 0 else 1
         items(itemCount) {
-            if (it >= itemCount - 1 && !lastPageReached) viewModel.loadPokemonListPaginated()
+            if (it + PAGE_SIZE >= itemCount - 1 && !isLoading && !lastPageReached && !isSearching)
+                viewModel.loadPokemonListPaginated()
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
     }
